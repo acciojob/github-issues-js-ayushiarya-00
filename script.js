@@ -1,42 +1,44 @@
 //your code here
-const loadNextBtn = document.getElementById("load_next");
-const loadPrevBtn = document.getElementById("load_prev");
-const issuesList = document.getElementById("issues");
-let currentPage = 1;
-
-loadNextBtn.addEventListener("click", loadNextPage);
-loadPrevBtn.addEventListener("click", loadPrevPage);
-
-function loadNextPage() {
-  currentPage++;
-  loadIssues(currentPage);
-  loadPrevBtn.disabled = false;
-}
-
-function loadPrevPage() {
-  if (currentPage > 1) {
-    currentPage--;
-    loadIssues(currentPage);
+let userData;
+let index = 1;
+let count = 0;
+const getData = async () => {
+  const udata = await fetch(
+    `https://api.github.com/repositories/1296269/issues?page=${index}&per_page=5`
+  );
+  const jsonData = await udata.json();
+  userData = await jsonData;
+};
+const printData = async () => {
+  await getData();
+  setTimeout(() => {
+    const list = document.querySelector(".List");
+    list.innerHTML = "";
+    list.setAttribute("start", count);
+    for (let i = 0; i < 5; i++) {
+      const li = document.createElement("li");
+      console.log(userData);
+      li.innerText = `${userData[i].title} - ${userData[i].html_url}`;
+      list.appendChild(li);
+      count++;
+    }
+  }, 1000);
+};
+const nextPage = async () => {
+  index++;
+  document.querySelector("#currentPage").innerText = `Page ${index}`;
+  // await getData();
+  await printData();
+};
+const prevPage = async () => {
+  if (index === 1) {
+    return;
   }
-  if (currentPage === 1) {
-    loadPrevBtn.disabled = true;
-  }
-}
+  index--;
+  count = count - 10;
+  document.querySelector("#currentPage").innerText = `Page ${index}`;
+  // await getData();
+  await printData();
+};
 
-function loadIssues(pageNumber) {
-  fetch(`https://api.github.com/repositories/1296269/issues?page=${pageNumber}&per_page=5`)
-    .then(response => response.json())
-    .then(data => {
-      issuesList.innerHTML = "";
-      data.forEach(issue => {
-        const issueName = issue.title;
-        const listItem = document.createElement("li");
-        listItem.textContent = issueName;
-        issuesList.appendChild(listItem);
-      });
-    })
-    .catch(error => console.log(error));
-}
-
-loadIssues(currentPage);
-
+printData();
